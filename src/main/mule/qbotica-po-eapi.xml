@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sqs="http://www.mulesoft.org/schema/mule/sqs" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sqs http://www.mulesoft.org/schema/mule/sqs/current/mule-sqs.xsd">
+	
+	<flow name="qbotica-po-eapiFlow" doc:id="4d259283-1f59-4a42-a5ce-1e91ee95fc2a" >
+		<s3:new-object-listener doc:name="On New Object" doc:id="4d4d89bf-5fd3-4087-b655-aed46863f529" config-ref="Amazon_S3_Configuration" bucketName="${aws.s3.bucketname}">
+			<scheduling-strategy >
+				<fixed-frequency frequency="30" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</s3:new-object-listener>
+		<ee:transform doc:name="logvar" doc:id="b3d2356d-7528-4c31-af24-07e768791519">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="logvar"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: payload.key
+  
+  
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar" doc:id="6c1289d6-72ea-4123-9baf-be28c69dd5f2" message="#[vars.logvar]" />
+		<set-variable value="#[payload.key[0 to -5]]" doc:name="creat file name" doc:id="3653420e-9f0d-49db-8f49-5bbfa029bf80" variableName="filename" />
+		<s3:get-object doc:name="Get Object Of File Name " doc:id="a3ae8dd3-a007-4fec-bf73-781eb0af88bd" config-ref="Amazon_S3_Configuration" key="#[payload.key]" bucketName="${aws.s3.bucketname}"/>
+		<ee:transform doc:name="Transform Message" doc:id="2c7f8bd4-6f49-4cde-9ae6-4153b4cc127c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="originalpayload" ><![CDATA[%dw 2.0
+input payload application/octet-stream 
+output application/csv
+---
+read(payload, "application/csv")]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="be33a0e7-bedd-4854-b458-a3fea7c50060" message="#[payload]"/>
+		<logger level="INFO" doc:name="prt file name" doc:id="08d74394-b16b-4200-ba7b-551aa56acc45" message="#[vars.filename]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="8338b3bb-e27b-448e-b64a-e3703fa80b6a" message="End the get odject flow"/>
+		<flow-ref doc:name="put object flow" doc:id="be1c6f45-f368-43e7-8f54-4680b13f6147" name="qbotica-po-eapi-putobject-flow"/>
+		<ee:transform doc:name="logvar1" doc:id="ec1786da-c6d6-416d-966b-44ced258fccc" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"ending of qbotica-po-eapi-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId:vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value:vars.filename ++'.csv'
+  
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="dbef1c01-a06d-48b1-bab3-744265cd2985" message="#[vars.logvar]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e0cf8175-b3e1-4671-8fd0-9d1faaf0d34a" type="EXPRESSION">
+				<ee:transform doc:name="logvar" doc:id="99fb23e6-7a31-4869-ab38-e672e59a4ea3" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: payload.key,
+  error:
+  {
+  	Type: error.errorType.identifier,
+    Details: error.detailedDescription
+  }
+  
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="logvar2" doc:id="05c1d322-6831-4023-9c0a-953e31ff0809" message="#[vars.logvar]" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ae2aacc9-f9ce-4f6b-b295-a8029e9a6115" type="S3:BAD_REQUEST">
+				<ee:transform doc:name="logvar" doc:id="51233266-cc22-4635-ab1f-4380b2b455ce" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: payload.key,
+  error:
+  {
+  	Type: error.errorType.identifier,
+    Details: " Unable to connect S3 bucket : " ++ Mule::p('aws.s3.bucketname')
+}
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="logvar1" doc:id="c744a053-9b94-4ee4-96a5-6f66556e3924" message="#[vars.logvar]" />
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="dd56531b-0b1c-4561-a73e-3c5c4f5c8f15" type="ANY">
+				<ee:transform doc:name="logvar" doc:id="bd7b1564-476d-4b6b-91c4-1368e5420d6b" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: payload.key,
+  error:
+  {
+  	Type: error.errorType.identifier,
+    Details: error.detailedDescription
+}
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="logvar1" doc:id="7ef3303e-115c-4872-981e-88f2aaf376d9" message="#[vars.logvar]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<sub-flow name="qbotica-po-eapi-putobject-flow" doc:id="2f9fa53e-ce52-4e0a-9539-05c40bb08900" >
+		<logger level="INFO" doc:name="Logger" doc:id="bcd0a90b-9158-4f7a-9ea3-b9010bf87e7a" message="Start put object flow"/>
+		<ee:transform doc:name="qbotica-po-eapi-putobject-flow -logvar" doc:id="839c4c6e-4a82-4147-b3cb-d3e3bda929e3">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="logvar"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-putobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-putobject-flow1" doc:id="9125083d-4edc-45e6-b7e2-a9da1eea69cd" message="#[vars.logvar]" />
+		<try doc:name="Try" doc:id="12abf518-f163-4290-b788-4e6ff799b7db" >
+			<s3:put-object doc:name="Put Object Of File Name" doc:id="667babd1-317f-458e-afae-8ad58e506d96" config-ref="Amazon_S3_Configuration" bucketName="${aws.putobject.bucketname}" key="#[vars.filename ++ '-backup-'++ now() as String {format: &quot;KK:mm:ss a, MMMM dd, uuuu&quot;} ++ '.csv']">
+			<s3:content><![CDATA[#[vars.originalpayload]]]></s3:content>
+		</s3:put-object>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="75db5444-94d7-4c53-b843-96ede7db0f80" type="ANY">
+					<ee:transform doc:name="qbotica-po-eapi-putobject-flow -logvar" doc:id="aebcf64a-b2d1-4b79-bea7-59c0916abe54" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-putobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv',
+   error:
+  {
+  	Type: error.errorType.identifier,
+    Details: "unable to backup of the file inot backup s3 bucket :" ++ Mule::p('aws.putobject.bucketname')
+}
+  
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<logger level="INFO" doc:name="logvar of qbotica-po-eapi-putobject-flow2" doc:id="e5698309-4eef-4a4a-847e-a898d604392f" message="#[vars.logvar]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="file-Logger" doc:id="814b8431-d3b2-4cc0-a843-ab8c2cebc9ba" message="file is successfully  copied" />
+		<flow-ref doc:name="delete flow" doc:id="d843efa3-fa03-4c7c-aebb-e39be9a60e19" name="qbotica-po-eapi-Deleteobject-flow" />
+		<ee:transform doc:name="qbotica-po-eapi-putobject-flow -logvar1" doc:id="68f480d5-b18c-43ed-a213-82f21b7f2d3c">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="logvar"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"ending of qbotica-po-eapi-putobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-putobject-flow" doc:id="ccd55ec8-14ed-41c7-9395-166be437af23" message="#[vars.logvar]" />
+	</sub-flow>
+	<sub-flow name="qbotica-po-eapi-Deleteobject-flow" doc:id="8e05b774-3d5e-48f1-a30d-c46465001050" >
+		<logger level="INFO" doc:name="Logger" doc:id="dd9f1c72-1e60-49df-be47-666dc97b10f3" message="Start Delete object flow "/>
+		<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar" doc:id="27a52ae0-b10a-4760-8fce-d33abddae28c">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="logvar"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-Deleteobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow" doc:id="3c7de512-31bf-47e2-a3b7-1e9c7ec3611a" message="#[vars.logvar]" />
+		<try doc:name="Try" doc:id="2aef6481-b1e3-4d66-a664-977ca03c4782" >
+			<s3:delete-object doc:name="Delete Object Of File" doc:id="6108915d-14e7-4dcc-804c-22fd838f3f39" config-ref="Amazon_S3_Configuration" bucketName="${aws.s3.bucketname}" key="#[vars.filename ++ '.csv']" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f6daeb4b-c97c-4931-a6d5-c70f02c70cc0" type="ANY">
+					<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar" doc:id="0a00dc55-9e81-4e1a-847e-d314e861ee17" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi-Deleteobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv',
+   error:
+  {
+  	Type: error.errorType.identifier,
+    Details: "unable to delete the file :" ++ Mule::p('aws.s3.bucketname')
+}
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow2" doc:id="039ad799-7127-451a-b9e4-04ce09874f83" message="#[vars.logvar]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="5fde1c49-c42d-4acf-87d2-9ec6a5feef27" message="End flow delete object" />
+		<flow-ref doc:name="Flow Reference" doc:id="7d3a6580-24d4-452d-9168-1e28f531664a" name="qbotica-po-eapi-aws-sqsf-flow" />
+		<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar1" doc:id="52e9d10f-39a5-47bc-8f3a-22a867cbaa6a" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"end of qbotica-po-eapi-Deleteobject-flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow1" doc:id="50f28da8-c7a7-42a5-8f5a-c1295e58e065" message="#[vars.logvar]" />
+	</sub-flow>
+	<sub-flow name="qbotica-po-eapi-aws-sqsf-flow" doc:id="4dfeba3b-2f89-4d56-aa03-fd0d001665be" >
+		<logger level="INFO" doc:name="Logger" doc:id="c02e76b0-6be4-4eb9-bead-61a9acc38ea5" message="start sqs "/>
+		<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar2" doc:id="e5dbb560-3146-415d-961d-0ac525531007">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="logvar"><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi aws sqs flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow" doc:id="5ad9c11d-c09d-47af-b3d5-d948d621a59a" message="#[vars.logvar]" />
+		<ee:transform doc:name="Transform Message" doc:id="e4edeba2-255c-4c10-a0f0-a8f929ebf72c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	delaySeconds: 0,
+	body: write( vars.originalpayload, 'application/json'),
+	messageAttributes: {
+		"ApplicationName": {
+			"stringValue":  "aws sample" default "",
+			"dataType": "String"
+		} as Object {
+			class: "org.mule.extension.sqs.api.model.MessageAttributeValue"
+		}
+	} as Object {
+		class: "java.util.HashMap"
+	}
+} as Object {
+	class: "org.mule.extension.sqs.api.model.Message"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<try doc:name="Try" doc:id="3e8d39b7-75bf-473c-b918-eec600f83a05" >
+			<sqs:send-message doc:name="Send message" doc:id="77d13975-b23f-4aa8-9a58-adba508bb151" config-ref="Amazon_SQS_Configuration" queueUrl="${aws.sqs.url}" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="07faac99-47d4-4ab2-b52c-c4cc761577ff" type="ANY">
+					<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar" doc:id="a34bd52e-8edf-43dc-ac8f-db5ee1757180" >
+						<ee:message />
+						<ee:variables >
+							<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :"starting of qbotica-po-eapi aws sqs flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv',
+    error:
+  {
+  	Type: error.errorType.identifier,
+    Details: "unable to send message to sqs : " ++ p('secure::aws.sqs.url'),
+    Description: error.detailedDescription
+    
+   }
+}]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow" doc:id="9c5ade40-4ee8-4a28-8daa-07e3e2de345b" message="#[vars.logvar]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="e702df52-1381-474a-a0ee-d75173c5a1f5" message="end"/>
+		<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar" doc:id="28a4e7a4-a3be-4d6e-8b7b-6628cc715cb5" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="logvar" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  appName: Mule::p('app.name'),
+  description :" end of qbotica-po-eapi aws sqs flow",
+  functionalIdentifier: Mule::p('functionalIdentifier'),
+  correlationId: vars.logvar.correlationId,
+  businessIdentifier1: "filename",
+  businessIdentifier1Value: vars.filename ++'.csv'
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow1" doc:id="d5fddeec-f6a9-43ea-a5a5-47f1d2f70f13" message="#[vars.logvar]" />
+	</sub-flow>
+</mule>
