@@ -1,0 +1,21 @@
+http:
+  host: "0.0.0.0"
+  port: "8081"
+  
+aws:
+  accesskey: "![3IIN7u56LiKQhZz74L0BmW+yUZ6thrAZN60v0hH9LWE=]"
+  secretkey: "![yrsia1GvT4v/f8+49s9JZViHh8/cXKEfJRZh9lcrqBb32Xsp38v/WB+tJIgC9UnG]"
+  regionendpoint: "us-east-1"
+  s3:
+    bucketname: "qbotica-process-eapi"
+  putobject:
+    bucketname: "backupfloder-eapi"
+  sqs:
+    arn: "arn:aws:sqs:us-east-1:060795906844:qbotica-qsq-process"
+    url: "https://sqs.us-east-1.amazonaws.com/060795906844/qbotica-qsq-process"
+onnewobject:
+  schedulingstrategy: "Fixed frequency"
+  frequency: "30" 
+  startdelay: "0"
+  timeunit: "MINUTES"    
+functionalIdentifier: "qbotica-po"
