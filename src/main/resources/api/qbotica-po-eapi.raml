@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: qbotica-po-eapi
+version: v1
+description: po process
+protocols: [HTTPS]
+
+/healthcheck:
+  description: healthcheck
+  get:   
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              message: healthcheck successfull

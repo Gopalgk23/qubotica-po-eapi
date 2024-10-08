@@ -19,3 +19,11 @@ onnewobject:
   startdelay: "0"
   timeunit: "MINUTES"    
 functionalIdentifier: "qbotica-po"
+general:
+  maxretries: "3"
+  milisecondsbetweenretries: "30000"
+  
+reconnection:
+  freq: "3000"
+  reconnectionattempts: "3"
+
