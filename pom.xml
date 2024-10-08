@@ -29,6 +29,9 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+					<classifier>mule-application</classifier>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -74,6 +77,12 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-objectstore-connector</artifactId>
 			<version>1.2.2</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.8.2</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
