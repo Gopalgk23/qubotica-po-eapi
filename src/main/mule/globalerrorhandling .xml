@@ -5,7 +5,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<error-handler name="gehError_Handler" doc:id="625c0324-2096-4f51-a05e-9b1c37b6d374" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9fa3d15e-ec41-4c59-9922-1a027ae7b9f1" type="EXPRESSION" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-qbotica-po-eapi-onnewobject-flow" doc:id="9fa3d15e-ec41-4c59-9922-1a027ae7b9f1" type="EXPRESSION" >
 			<ee:transform doc:name="logvar" doc:id="ecea92cd-e011-4bc0-b68b-7be42b6a30b4" >
 				<ee:message />
 				<ee:variables >
@@ -30,7 +30,7 @@ output application/json
 			</ee:transform>
 			<logger level="INFO" doc:name="logvar1" doc:id="25e3f28b-eec5-40cf-b0e6-4d9db44fd187" message="#[vars.logvar]" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate1" doc:id="7614d0ee-43c9-46d6-ad38-80af0d6c8ace" type="S3:BAD_REQUEST" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-On Error Propagate-qbotica-po-eapi-onnewobject-flow" doc:id="7614d0ee-43c9-46d6-ad38-80af0d6c8ace" type="S3:BAD_REQUEST" >
 			<ee:transform doc:name="logvar" doc:id="7de187df-6f1e-4457-b3c9-8ccb44496eeb" >
 				<ee:message />
 				<ee:variables >
@@ -55,7 +55,7 @@ output application/json
 			</ee:transform>
 			<logger level="INFO" doc:name="logvar1" doc:id="a84b4514-8c02-4045-bd83-af3720371556" message="#[vars.logvar]" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate2" doc:id="41de3a05-5423-449e-a081-492318bee4ca" type="ANY" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-qbotica-po-eapi-putobject-flow" doc:id="41de3a05-5423-449e-a081-492318bee4ca" type="EXPRESSION" >
 			<ee:transform doc:name="logvar" doc:id="343e63f6-723b-4205-ae4e-ab003316857b" >
 				<ee:message />
 				<ee:variables >
@@ -80,7 +80,7 @@ output application/json
 			</ee:transform>
 			<logger level="INFO" doc:name="logvar1" doc:id="a0950345-d142-4a00-9ec5-3caf0d2677c6" message="#[vars.logvar]" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate3" doc:id="06d288f5-e311-4cc8-a39e-9b456818b441" type="CONNECTIVITY" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-On Error Propagate-qbotica-po-eapi-onnewobject-flow" doc:id="06d288f5-e311-4cc8-a39e-9b456818b441" type="CONNECTIVITY" >
 			<ee:transform doc:name="qbotica-po-eapi-putobject-flow -logvar" doc:id="41928734-e5ee-4e88-9db9-9b649ec7cec1" >
 				<ee:message />
 				<ee:variables >
@@ -105,7 +105,7 @@ output application/json
 			</ee:transform>
 			<logger level="INFO" doc:name="logvar of qbotica-po-eapi-putobject-flow" doc:id="20f2ec46-e630-45c3-8331-d3c9254c1f05" message="#[vars.logvar]" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate4" doc:id="a9ceaa3f-5851-42fc-a21c-8099310659bd" type="TIMEOUT">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate-qbotica-po-eapi-putobject-flow" doc:id="a9ceaa3f-5851-42fc-a21c-8099310659bd" type="TIMEOUT">
 			<ee:transform doc:name="qbotica-po-eapi-Deleteobject-flow-logvar" doc:id="8247a41c-90cf-43e6-8caa-6edfbb52e054" >
 				<ee:message />
 				<ee:variables >
@@ -131,7 +131,7 @@ output application/json
 			</ee:transform>
 			<logger level="INFO" doc:name="logvar of qbotica-po-eapi-Delete-flow" doc:id="bfb0ffa3-fabe-4918-bf16-15f3850c63b2" message="#[vars.logvar]" />
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="false" logException="true" doc:name="On Error Propagate5" doc:id="7c200d3b-9ed5-4854-9ec9-2f44887fc84c" type="VALIDATION">
+		<on-error-propagate enableNotifications="false" logException="true" doc:name="On Error Propagate-qbotica-po-eapi-putobject-flow" doc:id="7c200d3b-9ed5-4854-9ec9-2f44887fc84c" type="VALIDATION">
 			<ee:transform doc:name="qbotica-po-eapi-putobject-flow -logvar" doc:id="67666da1-8856-40ea-be84-a76920489ee9" >
 				<ee:message />
 				<ee:variables >
