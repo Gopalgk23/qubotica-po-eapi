@@ -15,7 +15,7 @@ aws:
     url: "https://sqs.us-east-1.amazonaws.com/484907510455/qubotica-po-sqs"
 onnewobject:
   schedulingstrategy: "Fixed frequency"
-  frequency: "30" 
+  frequency: "1" 
   startdelay: "0"
   timeunit: "MINUTES"    
 functionalIdentifier: "qbotica-po"
